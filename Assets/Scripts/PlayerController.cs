@@ -5,6 +5,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D playerRb;
 
     [SerializeField] private float moveSpeed = 20;
+    [SerializeField] private float dashSpeed = 30;
     [SerializeField] private float jumpForce = 10;
     [SerializeField] private float groundCheckDistance = 0.1f;
 
@@ -36,6 +37,13 @@ public class PlayerController : MonoBehaviour
                 jumpCount++;
             }
         }
+        if (Input.GetKeyDown(KeyCode.LeftShift) && isDashUnlocked){
+            if (Input.GetKey(KeyCode.A)){
+                playerRb.velocity = new Vector2(-dashSpeed, playerRb.velocity.y);
+            } else if (Input.GetKey(KeyCode.D)){
+                playerRb.velocity = new Vector2(dashSpeed, playerRb.velocity.y);
+            }
+        }
     }
     public void UnlockJump(){
         isJumpUnlocked = true;
@@ -46,7 +54,7 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Double Jump ability unlocked!");
     }
     public void UnlockDash(){
-        // Implement dash logic here
+        isDashUnlocked = true;
     }
     private bool IsGrounded(){
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance);

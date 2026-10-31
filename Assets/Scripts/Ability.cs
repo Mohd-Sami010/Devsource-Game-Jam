@@ -4,7 +4,9 @@ public class Ability : MonoBehaviour
 {
     [SerializeField] private PlayerController playerController;
 
-    private enum AbilityType { 
+    private enum AbilityType {
+        MoveLeft,
+        MoveRight, 
         Jump,
         DoubleJump,
         Dash,
@@ -15,6 +17,12 @@ public class Ability : MonoBehaviour
         if (other.gameObject.GetComponent<PlayerController>() != null){
 
             switch (abilityType){
+                case AbilityType.MoveLeft:
+                    playerController.UnlockMoveLeft();
+                    break;
+                case AbilityType.MoveRight:
+                    playerController.UnlockMoveRight();
+                    break;
                 case AbilityType.Jump:
                     playerController.UnlockJump();
                     break;

@@ -6,23 +6,48 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private float moveSpeed = 20;
     [SerializeField] private float dashSpeed = 30;
+    [SerializeField] private float dashCooldown = 3;
     [SerializeField] private float jumpForce = 10;
     [SerializeField] private float groundCheckDistance = 0.1f;
 
     private int jumpCount = 0;
+    private float dashCooldownRemaining = 0;
 
-    private bool isJumpUnlocked = false;
-    private bool isDoubleJumpUnlocked = false;
-    private bool isDashUnlocked = false;
+    [SerializeField] private bool isMoveLeftUnlocked = true;
+    [SerializeField] private bool isMoveRightUnlocked = true;
+    [SerializeField] private bool isJumpUnlocked = false;
+    [SerializeField] private bool isDoubleJumpUnlocked = false;
+    [SerializeField] private bool isDashUnlocked = false;
+
+    private Vector2 respawnPosition;
 
     private void Start(){
         playerRb = GetComponent<Rigidbody2D>();
+        respawnPosition = transform.position;
+        GameManager.Instance.OnGameOver += HandleGameOver;
+    }
+    private void HandleGameOver(object sender, GameManager.GameState gameState)
+    {
+        if (gameState == GameManager.GameState.GameOver){
+            Debug.Log("Player has died. Respawning...");
+            Invoke(nameof(Respawn), 2f);
+        }
+    }
+    private void Respawn()
+    {
+        transform.position = respawnPosition;
+        playerRb.velocity = Vector2.zero;
+        GameManager.Instance.PlayerRespawned();
     }
     private void FixedUpdate(){
+        if (GameManager.Instance.CurrentGameState != GameManager.GameState.Playing){
+            return;
+        }
+        dashCooldownRemaining = Mathf.Max(0, dashCooldownRemaining - Time.fixedDeltaTime);
 
-        if (Input.GetKey(KeyCode.A)){
+        if (Input.GetKey(KeyCode.A) && isMoveLeftUnlocked){
             playerRb.velocity = new Vector2(-moveSpeed, playerRb.velocity.y);
-        } else if (Input.GetKey(KeyCode.D)){
+        } else if (Input.GetKey(KeyCode.D) && isMoveRightUnlocked){
             playerRb.velocity = new Vector2(moveSpeed, playerRb.velocity.y);
         } else {
             playerRb.velocity = new Vector2(0, playerRb.velocity.y);
@@ -37,13 +62,23 @@ public class PlayerController : MonoBehaviour
                 jumpCount++;
             }
         }
-        if (Input.GetKeyDown(KeyCode.LeftShift) && isDashUnlocked){
+        if (Input.GetKeyDown(KeyCode.LeftShift) && isDashUnlocked && dashCooldownRemaining <= 0){
             if (Input.GetKey(KeyCode.A)){
-                playerRb.velocity = new Vector2(-dashSpeed, playerRb.velocity.y);
+                playerRb.AddForce(new Vector2(-dashSpeed, 0), ForceMode2D.Impulse);
+                dashCooldownRemaining = dashCooldown;
             } else if (Input.GetKey(KeyCode.D)){
-                playerRb.velocity = new Vector2(dashSpeed, playerRb.velocity.y);
+                playerRb.AddForce(new Vector2(dashSpeed, 0), ForceMode2D.Impulse);
+                dashCooldownRemaining = dashCooldown;
             }
         }
+    }
+    public void UnlockMoveLeft(){
+        isMoveLeftUnlocked = true;
+        Debug.Log("Move Left ability unlocked!");
+    }
+    public void UnlockMoveRight(){
+        isMoveRightUnlocked = true;
+        Debug.Log("Move Right ability unlocked!");
     }
     public void UnlockJump(){
         isJumpUnlocked = true;
@@ -55,6 +90,7 @@ public class PlayerController : MonoBehaviour
     }
     public void UnlockDash(){
         isDashUnlocked = true;
+        Debug.Log("Dash ability unlocked!");
     }
     private bool IsGrounded(){
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance);

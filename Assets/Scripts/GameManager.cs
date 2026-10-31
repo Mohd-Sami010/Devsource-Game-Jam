@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -24,10 +25,15 @@ public class GameManager : MonoBehaviour
     {
         CurrentGameState = GameState.GameOver;
         OnGameOver?.Invoke(this, CurrentGameState);
+
+        if (gameOverType == GameOverType.Died)
+        {
+            Invoke(nameof(Respawn), 2f);
+            Debug.Log("Player has died. Respawning...");
+        }
     }
-    public void PlayerRespawned()
+    private void Respawn()
     {
-        CurrentGameState = GameState.Playing;
-        OnGameOver?.Invoke(this, CurrentGameState);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

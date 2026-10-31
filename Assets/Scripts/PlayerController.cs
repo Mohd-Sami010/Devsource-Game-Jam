@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     private int jumpCount = 0;
     private float dashCooldownRemaining = 0;
 
+    [Header("Ability Unlocks")]
     [SerializeField] private bool isMoveLeftUnlocked = true;
     [SerializeField] private bool isMoveRightUnlocked = true;
     [SerializeField] private bool isJumpUnlocked = false;
@@ -28,19 +29,13 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleGameOver(object sender, GameManager.GameState gameState)
     {
-        if (gameState == GameManager.GameState.GameOver){
-            Debug.Log("Player has died. Respawning...");
-            Invoke(nameof(Respawn), 2f);
-        }
-    }
-    private void Respawn()
-    {
-        transform.position = respawnPosition;
         playerRb.velocity = Vector2.zero;
-        GameManager.Instance.PlayerRespawned();
+        playerRb.gravityScale = 0;
     }
+    
     private void FixedUpdate(){
         if (GameManager.Instance.CurrentGameState != GameManager.GameState.Playing){
+            playerRb.velocity = Vector2.zero;
             return;
         }
         dashCooldownRemaining = Mathf.Max(0, dashCooldownRemaining - Time.fixedDeltaTime);

@@ -38,11 +38,8 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleGameOver(object sender, GameManager.GameOverType gameOverType)
     {
-        if (gameOverType == GameManager.GameOverType.Died)
-        {
-            playerRb.velocity = Vector2.zero;
-            playerRb.gravityScale = 0;
-        }
+        playerRb.velocity = Vector2.zero;
+        playerRb.gravityScale = 0;
     }
 
     private void FixedUpdate(){

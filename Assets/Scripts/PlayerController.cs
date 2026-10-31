@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController Instance { get; private set; }
     private Rigidbody2D playerRb;
 
     [SerializeField] private float moveSpeed = 20;
@@ -27,6 +28,9 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 respawnPosition;
 
+    private void Awake(){
+        Instance = this;
+    }
     private void Start(){
         playerRb = GetComponent<Rigidbody2D>();
         respawnPosition = transform.position;
@@ -116,7 +120,11 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Dash ability unlocked!");
     }
     private bool IsGrounded(){
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, layerMask: LayerMask.GetMask("Ground"));
         return hit.collider != null;
+    }
+    private void OnDrawGizmosSelected(){
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundCheckDistance);
     }
 }

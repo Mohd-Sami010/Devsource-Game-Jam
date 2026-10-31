@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class Ability : MonoBehaviour
 {
-    [SerializeField] private PlayerController playerController;
+    private PlayerController playerController;
+    [SerializeField] private SpriteRenderer abilityColorSpriteRenderer;
+    [SerializeField] private GameObject abilityUnlockEffectPrefab;
 
     private enum AbilityType {
         MoveLeft,
@@ -13,9 +15,11 @@ public class Ability : MonoBehaviour
     }
     [SerializeField] private AbilityType abilityType = AbilityType.Jump;
 
+    private void Start(){
+        playerController = PlayerController.Instance;
+    }
     private void OnTriggerEnter2D(Collider2D other){
         if (other.gameObject.GetComponent<PlayerController>() != null){
-
             switch (abilityType){
                 case AbilityType.MoveLeft:
                     playerController.UnlockMoveLeft();
@@ -33,6 +37,12 @@ public class Ability : MonoBehaviour
                     playerController.UnlockDash();
                     break;
             }
+            GameObject effect = Instantiate(abilityUnlockEffectPrefab, transform.position, Quaternion.identity);
+            TMPro.TextMeshPro textMesh = effect.transform.GetChild(0).GetComponent<TMPro.TextMeshPro>();
+            textMesh.color = abilityColorSpriteRenderer.color;
+            textMesh.text = abilityType.ToString() + " Unlocked!";
+            
+            Destroy(effect, 2f);
             Destroy(gameObject);
         }
     }

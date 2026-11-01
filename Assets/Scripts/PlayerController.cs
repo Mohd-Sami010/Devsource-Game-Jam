@@ -53,6 +53,7 @@ public class PlayerController : MonoBehaviour
         if (isGrounded){
             if (!wasGrounded){
                 jumpCount = 0;
+                CameraController.Instance.ShakeWeak();
             }
             coyoteTimeRemaining = coyoteTime;
         } else {
@@ -85,6 +86,7 @@ public class PlayerController : MonoBehaviour
                 jumpCount++;
                 jumpBufferRemaining = 0;
             }
+            CameraController.Instance.ShakeWeak();
         }
         if (Input.GetKeyDown(KeyCode.LeftShift) && isDashUnlocked && dashCooldownRemaining <= 0){
             if (Input.GetKey(KeyCode.A)){
@@ -98,23 +100,18 @@ public class PlayerController : MonoBehaviour
     }
     public void UnlockMoveLeft(){
         isMoveLeftUnlocked = true;
-        Debug.Log("Move Left ability unlocked!");
     }
     public void UnlockMoveRight(){
         isMoveRightUnlocked = true;
-        Debug.Log("Move Right ability unlocked!");
     }
     public void UnlockJump(){
         isJumpUnlocked = true;
-        Debug.Log("Jump ability unlocked!");
     }
     public void UnlockDoubleJump(){
         isDoubleJumpUnlocked = true;
-        Debug.Log("Double Jump ability unlocked!");
     }
     public void UnlockDash(){
         isDashUnlocked = true;
-        Debug.Log("Dash ability unlocked!");
     }
     private bool IsGrounded(){
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, layerMask: LayerMask.GetMask("Ground"));

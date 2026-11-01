@@ -28,7 +28,7 @@ public class GameManager : MonoBehaviour
 
         if (gameOverType == GameOverType.Died)
         {
-            Invoke(nameof(Respawn), 1f);
+            Invoke(nameof(Respawn), .5f);
             Debug.Log("Player has died. Respawning...");
         }
     }

@@ -113,8 +113,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  dashSpeed: 200
-  dashCooldown: 3
+  dashSpeed: 250
+  dashCooldown: 1
   jumpForce: 25
   groundCheckDistance: 0.2
   coyoteTime: 0.1

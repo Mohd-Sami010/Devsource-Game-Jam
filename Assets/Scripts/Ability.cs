@@ -41,6 +41,7 @@ public class Ability : MonoBehaviour
             TMPro.TextMeshPro textMesh = effect.transform.GetChild(0).GetComponent<TMPro.TextMeshPro>();
             textMesh.color = abilityColorSpriteRenderer.color;
             textMesh.text = abilityType.ToString() + " Unlocked!";
+            SoundManager.Instance.PlayAbilityPickupSound();
             
             Destroy(effect, 2f);
             Destroy(gameObject);

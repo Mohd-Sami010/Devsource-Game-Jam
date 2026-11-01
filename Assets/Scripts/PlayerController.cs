@@ -25,15 +25,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isJumpUnlocked = false;
     [SerializeField] private bool isDoubleJumpUnlocked = false;
     [SerializeField] private bool isDashUnlocked = false;
-
-    private Vector2 respawnPosition;
+    public event System.Action OnAbilityUnlocked;
 
     private void Awake(){
         Instance = this;
     }
     private void Start(){
         playerRb = GetComponent<Rigidbody2D>();
-        respawnPosition = transform.position;
         GameManager.Instance.OnGameOver += HandleGameOver;
     }
     private void HandleGameOver(object sender, GameManager.GameOverType gameOverType)
@@ -42,9 +40,26 @@ public class PlayerController : MonoBehaviour
         playerRb.gravityScale = 0;
     }
 
+    private void Update(){
+        if (GameManager.Instance.CurrentGameState != GameManager.GameState.Playing || !isJumpUnlocked){
+            jumpBufferRemaining = 0;
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space)){
+            jumpBufferRemaining = jumpBufferTime;
+        } else {
+            jumpBufferRemaining = Mathf.Max(0, jumpBufferRemaining - Time.deltaTime);
+        }
+    }
+
     private void FixedUpdate(){
         if (GameManager.Instance.CurrentGameState != GameManager.GameState.Playing){
             playerRb.velocity = Vector2.zero;
+            return;
+        }
+        if (transform.position.y < -10){
+            GameManager.Instance.GameOver(GameManager.GameOverType.Died);
             return;
         }
         dashCooldownRemaining = Mathf.Max(0, dashCooldownRemaining - Time.fixedDeltaTime);
@@ -53,7 +68,7 @@ public class PlayerController : MonoBehaviour
         if (isGrounded){
             if (!wasGrounded){
                 jumpCount = 0;
-                CameraController.Instance.ShakeWeak();
+                CameraController.Instance?.ShakeWeak();
             }
             coyoteTimeRemaining = coyoteTime;
         } else {
@@ -69,24 +84,23 @@ public class PlayerController : MonoBehaviour
             playerRb.velocity = new Vector2(0, playerRb.velocity.y);
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && isJumpUnlocked){
-            jumpBufferRemaining = jumpBufferTime;
-        } else {
-            jumpBufferRemaining = Mathf.Max(0, jumpBufferRemaining - Time.fixedDeltaTime);
-        }
-
         if (jumpBufferRemaining > 0 && isJumpUnlocked){
-            if (coyoteTimeRemaining > 0){
+            bool jumped = false;
+            if (jumpCount == 0 && (isGrounded || coyoteTimeRemaining > 0)){
                 playerRb.velocity = new Vector2(playerRb.velocity.x, jumpForce);
                 jumpCount = 1;
                 coyoteTimeRemaining = 0;
-                jumpBufferRemaining = 0;
+                jumped = true;
             } else if (isDoubleJumpUnlocked && jumpCount < 2){
                 playerRb.velocity = new Vector2(playerRb.velocity.x, jumpForce);
                 jumpCount++;
-                jumpBufferRemaining = 0;
+                jumped = true;
             }
-            CameraController.Instance.ShakeWeak();
+
+            if (jumped){
+                jumpBufferRemaining = 0;
+                CameraController.Instance?.ShakeWeak();
+            }
         }
         if (Input.GetKeyDown(KeyCode.LeftShift) && isDashUnlocked && dashCooldownRemaining <= 0){
             if (Input.GetKey(KeyCode.A)){
@@ -100,18 +114,23 @@ public class PlayerController : MonoBehaviour
     }
     public void UnlockMoveLeft(){
         isMoveLeftUnlocked = true;
+        OnAbilityUnlocked?.Invoke();
     }
     public void UnlockMoveRight(){
         isMoveRightUnlocked = true;
+        OnAbilityUnlocked?.Invoke();
     }
     public void UnlockJump(){
         isJumpUnlocked = true;
+        OnAbilityUnlocked?.Invoke();
     }
     public void UnlockDoubleJump(){
         isDoubleJumpUnlocked = true;
+        OnAbilityUnlocked?.Invoke();
     }
     public void UnlockDash(){
         isDashUnlocked = true;
+        OnAbilityUnlocked?.Invoke();
     }
     private bool IsGrounded(){
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, layerMask: LayerMask.GetMask("Ground"));
@@ -121,4 +140,10 @@ public class PlayerController : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundCheckDistance);
     }
+
+    public bool IsMoveLeftUnlocked => isMoveLeftUnlocked;
+    public bool IsMoveRightUnlocked => isMoveRightUnlocked;
+    public bool IsJumpUnlocked => isJumpUnlocked;
+    public bool IsDoubleJumpUnlocked => isDoubleJumpUnlocked;
+    public bool IsDashUnlocked => isDashUnlocked;
 }
